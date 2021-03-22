@@ -1,0 +1,42 @@
+---
+
+- name: make a .ssh directory
+  file: 
+    path: "~{{ new_user_name }}/.ssh"
+    state: "directory"
+    owner: "{{ new_user_name }}"
+    group: "{{ new_user_name }}"
+    mode: 0700
+
+- name: copy a public key to an authorized_keys
+  copy: 
+    dest: "~{{ new_user_name }}/.ssh/authorized_keys"
+    content: "{{ public_key }}"
+    mode: 0600
+    owner: "{{ new_user_name }}"
+    group: "{{ new_user_name }}"
+
+- name: change sshd_config for changing a port number for ssh
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "^Port"
+    insertafter: "^#Port"
+    line: "Port {{ ssh_port }}"
+
+- name: change sshd_config for disabling password authentication
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "^PasswordAuthentication"
+    insertafter: "^#PasswordAuthentication"
+    line: "PasswordAuthentication no"
+  notify:
+    - restart sshd
+
+- name: change sshd_config for disabling permit root login
+  lineinfile:
+    dest: "/etc/ssh/sshd_config" 
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+    state: "present"
+  notify:
+    - restart sshd

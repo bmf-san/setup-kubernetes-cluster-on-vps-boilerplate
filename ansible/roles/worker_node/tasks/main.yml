@@ -1,0 +1,15 @@
+---
+
+- name: Allow ports for worker node
+  become: yes
+  ufw:
+    state: enabled
+    rule: allow
+    to_port: '{{ item }}'
+  with_items:
+    - [10252]
+
+- name: Add worker node
+  become: yes
+  shell: |
+    kubeadm join {{ hostvars[groups['master'][0]].ansible_host }}:6443 --token={{ hostvars[groups['master'][0]]['kubeadm_token'].stdout }} --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['master'][0]]['kubeadm_ca_cert'].stdout }} --node-name={{ hostvars[groups['worker'][0]].ansible_host }}

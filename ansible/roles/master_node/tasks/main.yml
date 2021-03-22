@@ -1,0 +1,54 @@
+---
+
+- name: Allow ports for master node
+  become: yes
+  ufw:
+    state: enabled
+    rule: allow
+    to_port: '{{ item }}'
+  with_items:
+    - [6443, 2379, 2380, 10250, 10251, 10252]
+
+- name: Init kubernetes cluster
+  become: yes
+  shell: |
+    kubeadm init --node-name master --pod-network-cidr=10.244.0.0/16
+
+- name: Create kubernetes config directory
+  file:
+    path: "~{{ new_user_name }}/.kube/"
+    state: directory
+
+- name: Copy admin.conf to home directory
+  become: yes
+  copy:
+    src: "/etc/kubernetes/admin.conf" 
+    dest: "~{{ new_user_name }}/.kube/config"
+    owner: "{{ new_user_name }}"
+    group: "{{ new_user_name }}"
+    mode: 0755
+    remote_src: true
+
+- name: Update kernel settings for installing flannel
+  become: yes
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Install flannel
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+- name: Generate a token
+  shell: |
+    kubeadm token create
+  register: kubeadm_token
+
+- name: Generate a ca cert token
+  shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+  check_mode: false
+  changed_when: false
+  register: kubeadm_ca_cert

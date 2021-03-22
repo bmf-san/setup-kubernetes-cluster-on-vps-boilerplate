@@ -1,0 +1,9 @@
+---
+
+- name : add a user
+  user: 
+    name: "{{ new_user_name }}"
+    password: "{{ new_user_password | password_hash('sha512') }}"
+    shell: "/bin/bash"
+    state: "present"
+    groups: "sudo"
