@@ -1,0 +1,12 @@
+# ansible
+ansible/inventories/*
+!ansible/inventories/.gitkeep
+ansible/inventories/host_vars/*
+!ansible/inventories/host_vars/.gitkeep
+
+# terraform
+terraform/**/.terraform/*
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+!terraform/example.tfvars

@@ -1,0 +1,21 @@
+---
+- hosts: 
+    - master
+    - worker
+  tags: ['init']
+  roles:
+    - users
+    - ssh
+    - iptables
+    - apt
+    - docker
+    - kubeadm
+  gather_facts: true
+- hosts:
+    - master
+  roles:
+    - master_node
+- hosts:
+    - worker
+  roles:
+    - worker_node

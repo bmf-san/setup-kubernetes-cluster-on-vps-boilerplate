@@ -1,0 +1,33 @@
+---
+
+- name: Add GPG key for kubeadm
+  become: yes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: Add apt repository for kubeadm
+  become: yes
+  apt_repository:
+    repo: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+
+- name: apt install kubeadm, kubelet and kubectl
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - kubeadm
+      - kubelet
+      - kubectl
+
+- name: Disable swapoff
+  become: yes
+  shell: swapoff -a
+
+- name: Disable swapoff permanently
+  become: yes
+  replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes

@@ -1,0 +1,11 @@
+---
+
+- name: change iptables for accepting new ssh connections
+  iptables:
+    chain: "INPUT"
+    protocol: "tcp"
+    destination_port: "{{ ssh_port | int }}"
+    ctstate: "NEW"
+    syn: "match"
+    jump: "ACCEPT"
+    comment: "Accept new SSH connections."
